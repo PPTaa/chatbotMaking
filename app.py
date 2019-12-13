@@ -1,6 +1,8 @@
 from flask import Flask, escape, request, render_template
 from decouple import config
 from bs4 import BeautifulSoup
+import os
+import sys
 import requests
 import random
 import html
@@ -10,6 +12,9 @@ app = Flask(__name__)
 api_url = "https://api.telegram.org/bot"
 token = config("TELEGRAM_BOT_TOKEN")
 google_key = config("GOOGLE_KEY")
+X_Naver_Client_Id = config("NAVER_CLIENT_ID")
+X_Naver_Client_Secret = config("NAVER_CLIENT_SECRET")
+
 @app.route('/')
 def hello():
     name = request.args.get("name", "World")
@@ -44,74 +49,95 @@ def telegram():
     user_input = req['message']['text'] 
 
     #로또번호
-    numbers = list(range(1,46))
-    lucky = random.sample(numbers, 6)
-    sorted_lucky = sorted(lucky)
-    #국내증시
-    naver_sise_url = "https://finance.naver.com/sise/"
-    res_korea = requests.get(naver_sise_url).text
-    korea_soup = BeautifulSoup(res_korea, "html.parser")
-    kospi = korea_soup.select_one("#KOSPI_now").text
-    kospi_change = korea_soup.select_one("#KOSPI_change").text.replace("\n","")
-    kosdaq = korea_soup.select_one('#KOSDAQ_now').text
-    kosdaq_change = korea_soup.select_one('#KOSDAQ_change').text.replace("\n","")
-    #해외증시
-    naver_world_sise_url = "https://finance.naver.com/world/"
-    res_world = requests.get(naver_world_sise_url).text
-    world_soup= BeautifulSoup(res_world, "html.parser")
-    dow = world_soup.select_one("#worldIndexColumn1 > li.on > dl > dd.point_status > strong").text
-    dow_change = world_soup.select_one("#worldIndexColumn1 > li.on > dl > dd.point_status > span:nth-child(3)").text
-    nasdaq = world_soup.select_one("#worldIndexColumn2 > li.on > dl > dd.point_status > strong").text
-    nasdaq_change = world_soup.select_one("#worldIndexColumn2 > li.on > dl > dd.point_status > span:nth-child(3)").text
-    #현재상영작
-    naver_current_movie_url = "https://movie.naver.com/movie/running/current.nhn"
-    res_current_movie = requests.get(naver_current_movie_url).text
-    current_movie_soup = BeautifulSoup(res_current_movie, "html.parser")
-    current_movielist=[]
-    for i in range(1,20):
-        movie_rank = current_movie_soup.select_one(f"#content > div.article > div:nth-child(1) > div.lst_wrap > ul > li:nth-child({i}) > dl > dt > a").text
-        current_movielist.append(movie_rank)
-        movie='\n'.join(current_movielist)
+    # numbers = list(range(1,46))
+    # lucky = random.sample(numbers, 6)
+    # sorted_lucky = sorted(lucky)
+    # #국내증시
+    # naver_sise_url = "https://finance.naver.com/sise/"
+    # res_korea = requests.get(naver_sise_url).text
+    # korea_soup = BeautifulSoup(res_korea, "html.parser")
+    # kospi = korea_soup.select_one("#KOSPI_now").text
+    # kospi_change = korea_soup.select_one("#KOSPI_change").text.replace("\n","")
+    # kosdaq = korea_soup.select_one('#KOSDAQ_now').text
+    # kosdaq_change = korea_soup.select_one('#KOSDAQ_change').text.replace("\n","")
+    # #해외증시
+    # naver_world_sise_url = "https://finance.naver.com/world/"
+    # res_world = requests.get(naver_world_sise_url).text
+    # world_soup= BeautifulSoup(res_world, "html.parser")
+    # dow = world_soup.select_one("#worldIndexColumn1 > li.on > dl > dd.point_status > strong").text
+    # dow_change = world_soup.select_one("#worldIndexColumn1 > li.on > dl > dd.point_status > span:nth-child(3)").text
+    # nasdaq = world_soup.select_one("#worldIndexColumn2 > li.on > dl > dd.point_status > strong").text
+    # nasdaq_change = world_soup.select_one("#worldIndexColumn2 > li.on > dl > dd.point_status > span:nth-child(3)").text
+    # #현재상영작
+    # naver_current_movie_url = "https://movie.naver.com/movie/running/current.nhn"
+    # res_current_movie = requests.get(naver_current_movie_url).text
+    # current_movie_soup = BeautifulSoup(res_current_movie, "html.parser")
+    # current_movielist=[]
+    # for i in range(1,20):
+    #     movie_rank = current_movie_soup.select_one(f"#content > div.article > div:nth-child(1) > div.lst_wrap > ul > li:nth-child({i}) > dl > dt > a").text
+    #     current_movielist.append(movie_rank)
+    #     movie='\n'.join(current_movielist)
 
         
-    if user_input == keyword[0]:
-        return_data = f" 로또를 입력하셨습니다. 번호는{sorted_lucky}."
+    # if user_input == keyword[0]:
+    #     return_data = f" 로또를 입력하셨습니다. 번호는{sorted_lucky}."
 
-    elif user_input[0:3] == keyword[1]:
-        print(user_input)
-        google_api_url = 'https://translation.googleapis.com/language/translate/v2'
-        before_text = user_input[3:]
+    # elif user_input[0:3] == keyword[1]:
+    #     print(user_input)
+    #     google_api_url = 'https://translation.googleapis.com/language/translate/v2'
+    #     before_text = user_input[3:]
  
-        data = {
-            'q':before_text,
-            'source':'ko',
-            'target':'en',
-        }
-        request_url = f'{google_api_url}?key={google_key}'
+    #     data = {
+    #         'q':before_text,
+    #         'source':'ko',
+    #         'target':'en',
+    #     }
+    #     request_url = f'{google_api_url}?key={google_key}'
 
-        res = requests.post(request_url, data).json()
-        print(res)
-        after_text = res['data']['translations'][0]['translatedText']
-        unescape_text = html.unescape(after_text)
-        print(unescape_text)
-        return_data = f"{unescape_text}번역완료"
+    #     res = requests.post(request_url, data).json()
+    #     print(res)
+    #     after_text = res['data']['translations'][0]['translatedText']
+    #     unescape_text = html.unescape(after_text)
+    #     print(unescape_text)
+    #     return_data = f"{unescape_text}번역완료"
 
-    elif user_input == keyword[2]:
-        return_data = f"현재 코스피 : {kospi} \
-                        \n 증감률 : {kospi_change}\
-                        \n\n 현재 코스닥 : {kosdaq}\
-                        \n 증감률 : {kosdaq_change}"
-    elif user_input == keyword[3]:
-        return_data = f"현재 다우지수 : {dow}\
-                        \n 증감률 : {dow_change}\
-                        \n\n 현재 나스닥 : {nasdaq}\
-                        \n 증감률 : {nasdaq_change}"
-    elif user_input == keyword[4]:
-        return_data = f"현재 상영작\n{movie}"
+    # elif user_input == keyword[2]:
+    #     return_data = f"현재 코스피 : {kospi} \
+    #                     \n 증감률 : {kospi_change}\
+    #                     \n\n 현재 코스닥 : {kosdaq}\
+    #                     \n 증감률 : {kosdaq_change}"
+    # elif user_input == keyword[3]:
+    #     return_data = f"현재 다우지수 : {dow}\
+    #                     \n 증감률 : {dow_change}\
+    #                     \n\n 현재 나스닥 : {nasdaq}\
+    #                     \n 증감률 : {nasdaq_change}"
+    # elif user_input == keyword[4]:
+    #     return_data = f"현재 상영작\n{movie}"
 
-    else:
-        return_data = "지금 사용 가능한 명령어는 번역, 로또, 국내증시, 해외증시, 현재상영작 입니다."
+    # else:
+    #     return_data = "지금 사용 가능한 명령어는 번역, 로또, 국내증시, 해외증시, 현재상영작 입니다."
 
+    naver_api_url = 'https://openapi.naver.com/v1/search/movie.json' 
+    headers = {"X-Naver-Client-Id": X_Naver_Client_Id,"X-Naver-Client-Secret": X_Naver_Client_Secret}
+
+    request_url = f'{naver_api_url}?query={user_input}&display=1'
+
+    res = requests.get(request_url, headers=headers).json()
+    if user_input == "/start":
+        return_data = "영화 정보 검색봇입니다. 영화를 검색해주세요"
+    else: 
+        try:
+            res_item = res["items"][0]
+            return_data = f"입력내용 : {user_input}\
+                    \n제목 : {res_item['title'].replace('<b>','').replace('</b>','')}\
+                    \n영어제목 : {res_item['subtitle']}\
+                    \n감독 : {res_item['director']}\
+                    \n출연배우 : {res_item['actor']}\
+                    \n평점 : {res_item['userRating']}\
+                    \n{res_item['link']} "
+        except:
+            return_data = "영화정보가 없습니다."
+                
     send_url = f"https://api.telegram.org/bot{token}/sendMessage?text={return_data}&chat_id={user_id}"
     requests.get(send_url)
 
